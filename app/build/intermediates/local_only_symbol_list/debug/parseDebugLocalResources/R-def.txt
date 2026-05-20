@@ -1,0 +1,25 @@
+R_DEF: Internal format may change without notice
+local
+array depth_options_array
+array instant_placement_options_array
+drawable ic_launcher
+drawable ic_settings
+id depth_debug_text
+id depth_settings
+id instant_placement_settings
+id mode_button
+id role_button
+id settings_button
+id surfaceview
+layout activity_main
+menu settings_menu
+string app_name
+string button_text_disable_depth
+string button_text_enable_depth
+string depth_use_explanation
+string done
+string options_title_instant_placement
+string options_title_with_depth
+string options_title_without_depth
+style AppBaseTheme
+style AppTheme

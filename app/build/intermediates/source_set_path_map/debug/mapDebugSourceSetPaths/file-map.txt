@@ -1,0 +1,17 @@
+com.google.ar.core.examples.java.helloar.app-appcompat-1.1.0-0 C:\Users\arehman\.gradle\caches\transforms-4\0b992f4098eb9fa9eeca975bbd678115\transformed\appcompat-1.1.0\res
+com.google.ar.core.examples.java.helloar.app-jetified-appcompat-resources-1.1.0-1 C:\Users\arehman\.gradle\caches\transforms-4\39ce8cef642c3b046d1af9742e89561b\transformed\jetified-appcompat-resources-1.1.0\res
+com.google.ar.core.examples.java.helloar.app-transition-1.2.0-2 C:\Users\arehman\.gradle\caches\transforms-4\4fdf8438641a17a1661bf2e281af1064\transformed\transition-1.2.0\res
+com.google.ar.core.examples.java.helloar.app-coordinatorlayout-1.1.0-3 C:\Users\arehman\.gradle\caches\transforms-4\79f106eb89b81989cac2ef1928acf37b\transformed\coordinatorlayout-1.1.0\res
+com.google.ar.core.examples.java.helloar.app-recyclerview-1.1.0-4 C:\Users\arehman\.gradle\caches\transforms-4\8532a849186941dccc31e553674b1584\transformed\recyclerview-1.1.0\res
+com.google.ar.core.examples.java.helloar.app-jetified-viewpager2-1.0.0-5 C:\Users\arehman\.gradle\caches\transforms-4\9f8c0466f5ed663d49f1cbb03a1bfd9e\transformed\jetified-viewpager2-1.0.0\res
+com.google.ar.core.examples.java.helloar.app-cardview-1.0.0-6 C:\Users\arehman\.gradle\caches\transforms-4\af7847a3528c796c74d72f5a18f663b3\transformed\cardview-1.0.0\res
+com.google.ar.core.examples.java.helloar.app-material-1.1.0-7 C:\Users\arehman\.gradle\caches\transforms-4\b7905987acc3af58f3e9725895e96f88\transformed\material-1.1.0\res
+com.google.ar.core.examples.java.helloar.app-jetified-core-1.52.0-8 C:\Users\arehman\.gradle\caches\transforms-4\ba4c8d2456b29c3a99bdc1d02423bbb6\transformed\jetified-core-1.52.0\res
+com.google.ar.core.examples.java.helloar.app-core-1.1.0-9 C:\Users\arehman\.gradle\caches\transforms-4\d7b8aee179cfddcb6565d28f39352881\transformed\core-1.1.0\res
+com.google.ar.core.examples.java.helloar.app-pngs-10 C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\build\generated\res\pngs\debug
+com.google.ar.core.examples.java.helloar.app-resValues-11 C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\build\generated\res\resValues\debug
+com.google.ar.core.examples.java.helloar.app-packageDebugResources-12 C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.google.ar.core.examples.java.helloar.app-packageDebugResources-13 C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.google.ar.core.examples.java.helloar.app-debug-14 C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.google.ar.core.examples.java.helloar.app-debug-15 C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\debug\res
+com.google.ar.core.examples.java.helloar.app-main-16 C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\res

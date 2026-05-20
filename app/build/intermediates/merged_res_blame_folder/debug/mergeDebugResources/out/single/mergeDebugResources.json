@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.google.ar.core.examples.java.helloar.app-debug-14:/menu_settings_menu.xml.flat",
+        "source": "com.google.ar.core.examples.java.helloar.app-main-16:/menu/settings_menu.xml"
+    },
+    {
+        "merged": "com.google.ar.core.examples.java.helloar.app-debug-14:/layout_activity_main.xml.flat",
+        "source": "com.google.ar.core.examples.java.helloar.app-main-16:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.google.ar.core.examples.java.helloar.app-debug-14:/drawable-xxhdpi_ic_settings.png.flat",
+        "source": "com.google.ar.core.examples.java.helloar.app-main-16:/drawable-xxhdpi/ic_settings.png"
+    },
+    {
+        "merged": "com.google.ar.core.examples.java.helloar.app-debug-14:/drawable-xxhdpi_ic_launcher.png.flat",
+        "source": "com.google.ar.core.examples.java.helloar.app-main-16:/drawable-xxhdpi/ic_launcher.png"
+    }
+]
