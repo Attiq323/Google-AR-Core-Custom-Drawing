@@ -214,11 +214,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         }
     }
 
-    private static final float DRAW_MIN_ANCHOR_DISTANCE_M = 0.010f; // 1 cm between accepted drawing samples
-    private static final float DRAW_SURFACE_OFFSET_M = 0.0015f; // 1.5 mm. Keep very small so side views stay attached.
+    private static final float DRAW_MIN_ANCHOR_DISTANCE_M = 0.006f; // 1 cm between accepted drawing samples
+    private static final float DRAW_SURFACE_OFFSET_M = 0.02f; // 1.5 mm. Keep very small so side views stay attached.
     private static final float DRAW_MAX_BAD_DEPTH_JUMP_M = 0.12f; // reject sudden raw-depth/background jumps
     private static final float DRAW_MAX_SEGMENT_DISTANCE_M = 0.07f; // create a new local anchor every ~7 cm for curved/non-plane surfaces
-    private static final int DRAW_INTERP_SEGMENTS = 1;
+    private static final int DRAW_INTERP_SEGMENTS = 3;
     private static final float HIT_MAX_DISTANCE_M = 8.0f;
     private static final float HIT_MIN_DISTANCE_M = 0.10f;
 
@@ -229,9 +229,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     private static final float RAW_DEPTH_MIN_CONFIDENCE = 0.35f;
 
     // Draw as a thin object/decal. Big tube radius and large surface offset look like floating geometry.
-    private static final float DRAW_BASE_RADIUS_M = 0.0035f;
-    private static final float DRAW_MIN_RADIUS_M = 0.0038f;
-    private static final float DRAW_MAX_RADIUS_M = 0.0090f;
+    private static final float DRAW_BASE_RADIUS_M = 0.0040f;
+    private static final float DRAW_MIN_RADIUS_M = 0.0040f;
+    private static final float DRAW_MAX_RADIUS_M = 0.0100f;
 
     // Matrices
     private final float[] modelMatrix = new float[16];
@@ -997,7 +997,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         HitResult bestPointHit = null;
 
         final float MIN_DIST_M = 0.05f;
-        final float MAX_DIST_M = 6.00f;
+        final float MAX_DIST_M = 8.00f;
 
         for (HitResult h : hits) {
             Trackable t = h.getTrackable();
@@ -1050,7 +1050,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         HitResult bestPointHit = null;
 
         final float MIN_DIST_M = 0.05f;
-        final float MAX_DIST_M = 6.00f;
+        final float MAX_DIST_M = 8.00f;
 
         for (HitResult h : hits) {
             Trackable t = h.getTrackable();

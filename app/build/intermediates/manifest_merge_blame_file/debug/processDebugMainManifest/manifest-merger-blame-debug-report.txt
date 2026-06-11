@@ -24,40 +24,40 @@
 24        android:targetSdkVersion="36" />
 25
 26    <uses-permission android:name="android.permission.CAMERA" />
-26-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:21:3-62
-26-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:21:20-60
+26-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:21:3-62
+26-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:21:20-60
 27    <!-- Required to post notifications for Android T+ devices -->
 28
 29    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-29-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:24:3-75
-29-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:24:20-72
+29-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:24:3-75
+29-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:24:20-72
 30    <!--
 31       Google Play assumes that certain hardware related permissions indicate that the underlying
 32       hardware features are required by default.
 33       (https://developer.android.com/topic/arc/manifest.html#implied-features).
 34    -->
 35    <uses-feature
-35-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:28:3-82
+35-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:28:3-82
 36        android:name="android.hardware.camera"
-36-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:28:17-55
+36-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:28:17-55
 37        android:required="true" />
-37-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:28:56-79
+37-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:28:56-79
 38    <!--
 39       Limits app visibility in the Google Play Store to ARCore supported devices
 40       (https://developers.google.com/ar/devices).
 41    -->
 42    <uses-feature
-42-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:31:3-84
+42-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:31:3-84
 43        android:name="android.hardware.camera.ar"
-43-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:31:17-58
+43-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:31:17-58
 44        android:required="true" />
-44-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:31:59-82
+44-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:31:59-82
 45    <uses-feature
-45-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:32:3-76
+45-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:32:3-76
 46        android:glEsVersion="0x00020000"
-46-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:32:17-49
+46-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:32:17-49
 47        android:required="true" />
-47-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:32:50-73
+47-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:32:50-73
 48
 49    <queries>
 49-->[com.google.ar:core:1.52.0] C:\Users\arehman\.gradle\caches\transforms-4\ba4c8d2456b29c3a99bdc1d02423bbb6\transformed\jetified-core-1.52.0\AndroidManifest.xml:20:5-27:15
@@ -77,54 +77,54 @@
 56    </queries>
 57
 58    <application
-58-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:34:3-56:17
+58-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:34:3-56:17
 59        android:allowBackup="false"
-59-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:36:7-34
+59-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:36:7-34
 60        android:appCategory="game"
-60-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:35:7-33
+60-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:35:7-33
 61        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 61-->[androidx.core:core:1.1.0] C:\Users\arehman\.gradle\caches\transforms-4\d7b8aee179cfddcb6565d28f39352881\transformed\core-1.1.0\AndroidManifest.xml:24:18-86
 62        android:debuggable="true"
 63        android:extractNativeLibs="false"
 64        android:icon="@drawable/ic_launcher"
-64-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:37:7-43
+64-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:37:7-43
 65        android:label="@string/app_name"
-65-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:38:7-39
+65-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:38:7-39
 66        android:testOnly="true"
 67        android:theme="@style/AppTheme"
-67-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:39:7-38
+67-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:39:7-38
 68        android:usesCleartextTraffic="false" >
-68-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:40:7-43
+68-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:40:7-43
 69        <activity
-69-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:43:5-53:16
+69-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:43:5-53:16
 70            android:name="com.google.ar.core.examples.java.helloar.HelloArActivity"
-70-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:44:9-80
+70-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:44:9-80
 71            android:configChanges="orientation|screenSize"
-71-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:45:9-55
+71-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:45:9-55
 72            android:exported="true"
-72-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:46:9-32
+72-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:46:9-32
 73            android:screenOrientation="locked"
-73-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:48:9-43
+73-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:48:9-43
 74            android:theme="@style/Theme.AppCompat.NoActionBar" >
-74-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:47:9-59
+74-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:47:9-59
 75            <intent-filter>
-75-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:49:7-52:23
+75-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:49:7-52:23
 76                <action android:name="android.intent.action.MAIN" />
-76-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:50:9-60
-76-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:50:17-58
+76-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:50:9-60
+76-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:50:17-58
 77
 78                <category android:name="android.intent.category.LAUNCHER" />
-78-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:51:9-68
-78-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:51:19-66
+78-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:51:9-68
+78-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:51:19-66
 79            </intent-filter>
 80        </activity>
 81        <!-- Indicates whether "Google Play Services for AR" (ARCore) is "required" or "optional". -->
 82        <meta-data
-82-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:55:5-77
+82-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:55:5-77
 83            android:name="com.google.ar.core"
-83-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:55:16-49
+83-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:55:16-49
 84            android:value="required" />
-84-->C:\Users\arehman\Downloads\ar_plane_style_depth_anchors_updated\app\src\main\AndroidManifest.xml:55:50-74
+84-->D:\WorkSpace\ar_plane_style_depth_anchors_updated(Latest Stable release)\app\src\main\AndroidManifest.xml:55:50-74
 85        <!-- The minimal version code of ARCore APK required for an app using this SDK. -->
 86        <meta-data
 86-->[com.google.ar:core:1.52.0] C:\Users\arehman\.gradle\caches\transforms-4\ba4c8d2456b29c3a99bdc1d02423bbb6\transformed\jetified-core-1.52.0\AndroidManifest.xml:32:9-34:41
