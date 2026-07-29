@@ -23,6 +23,25 @@
                     }
                 },
                 {
+                    "source": "D:\\WorkSpace\\ar_mini_surface_patch_updated\\app\\src\\main\\res\\values\\styles.xml",
+                    "from": {
+                        "startLines": "21,30",
+                        "startColumns": "2,2",
+                        "startOffsets": "765,1063",
+                        "endLines": "27,32",
+                        "endColumns": "10,10",
+                        "endOffsets": "1029,1212"
+                    },
+                    "to": {
+                        "startLines": "740,743",
+                        "startColumns": "4,4",
+                        "startOffsets": "53111,53188",
+                        "endLines": "742,745",
+                        "endColumns": "10,10",
+                        "endOffsets": "53183,53249"
+                    }
+                },
+                {
                     "source": "C:\\Users\\arehman\\.gradle\\caches\\transforms-4\\39ce8cef642c3b046d1af9742e89561b\\transformed\\jetified-appcompat-resources-1.1.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,29,36,47,74",
@@ -42,25 +61,6 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\arehman\\Downloads\\ar_mini_surface_patch_updated\\app\\src\\main\\res\\values\\styles.xml",
-                    "from": {
-                        "startLines": "21,30",
-                        "startColumns": "2,2",
-                        "startOffsets": "765,1063",
-                        "endLines": "27,32",
-                        "endColumns": "10,10",
-                        "endOffsets": "1029,1212"
-                    },
-                    "to": {
-                        "startLines": "740,743",
-                        "startColumns": "4,4",
-                        "startOffsets": "53111,53188",
-                        "endLines": "742,745",
-                        "endColumns": "10,10",
-                        "endOffsets": "53183,53249"
-                    }
-                },
-                {
                     "source": "C:\\Users\\arehman\\.gradle\\caches\\transforms-4\\9f8c0466f5ed663d49f1cbb03a1bfd9e\\transformed\\jetified-viewpager2-1.0.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2",
@@ -77,6 +77,25 @@
                         "endLines": "6601",
                         "endColumns": "24",
                         "endOffsets": "362705"
+                    }
+                },
+                {
+                    "source": "D:\\WorkSpace\\ar_mini_surface_patch_updated\\app\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "24,29,17,20,19,18,23,28,21,22",
+                        "startColumns": "2,2,2,2,2,2,2,2,2,2",
+                        "startOffsets": "1327,1577,642,980,901,711,1270,1472,1061,1160",
+                        "endLines": "27,31,17,20,19,18,23,28,21,22",
+                        "endColumns": "17,17,68,80,78,189,56,104,98,109",
+                        "endOffsets": "1469,1711,708,1058,977,898,1324,1574,1157,1267"
+                    },
+                    "to": {
+                        "startLines": "2,6,665,668,669,675,676,717,718,719",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "150,297,42721,43073,43156,43664,43856,50861,50968,51069",
+                        "endLines": "5,8,665,668,669,675,676,717,718,719",
+                        "endColumns": "17,17,70,82,80,191,58,106,100,111",
+                        "endOffsets": "292,431,42787,43151,43232,43851,43910,50963,51064,51176"
                     }
                 },
                 {
@@ -187,25 +206,6 @@
                         "startOffsets": "36919,36959,37352,37491,37546,38430,38484,38536,38585,38646",
                         "endColumns": "39,46,42,54,46,53,51,48,60,49",
                         "endOffsets": "36954,37001,37390,37541,37588,38479,38531,38580,38641,38691"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\arehman\\Downloads\\ar_mini_surface_patch_updated\\app\\src\\main\\res\\values\\strings.xml",
-                    "from": {
-                        "startLines": "24,29,17,20,19,18,23,28,21,22",
-                        "startColumns": "2,2,2,2,2,2,2,2,2,2",
-                        "startOffsets": "1327,1577,642,980,901,711,1270,1472,1061,1160",
-                        "endLines": "27,31,17,20,19,18,23,28,21,22",
-                        "endColumns": "17,17,68,80,78,189,56,104,98,109",
-                        "endOffsets": "1469,1711,708,1058,977,898,1324,1574,1157,1267"
-                    },
-                    "to": {
-                        "startLines": "2,6,665,668,669,675,676,717,718,719",
-                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "150,297,42721,43073,43156,43664,43856,50861,50968,51069",
-                        "endLines": "5,8,665,668,669,675,676,717,718,719",
-                        "endColumns": "17,17,70,82,80,191,58,106,100,111",
-                        "endOffsets": "292,431,42787,43151,43232,43851,43910,50963,51064,51176"
                     }
                 },
                 {

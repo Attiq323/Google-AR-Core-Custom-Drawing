@@ -187,6 +187,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         UserRole owner;
         final List<StrokeSegment> segments = new ArrayList<>();
         StrokeSegment activeSegment;
+
+        // Live stroke can be rough while finger is moving.
+        // When user releases finger, we rebuild this stroke as one stable smoothed tube.
+        boolean finalizedSmoothTube = false;
     }
 
     private final List<Stroke> drawStrokes = new ArrayList<>();
@@ -195,7 +199,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     // Debug overlay for checking whether depth drawing is selecting the front object surface
     // or jumping to a farther/background depth cluster. This is intentionally UI-only and
     // does not change drawing placement.
-    private TextView depthDebugTextView;
     private static final int DEPTH_DEBUG_MAX_ROWS = 8;
     private final ArrayList<String> depthDebugRows = new ArrayList<>();
     private int depthDebugSampleIndex = 0;
@@ -233,10 +236,19 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     }
 
     private static final float DRAW_MIN_ANCHOR_DISTANCE_M = 0.010f; // 1 cm between accepted drawing samples
-    private static final float DRAW_SURFACE_OFFSET_M = 0.0015f; // 1.5 mm. Keep very small so side views stay attached.
+    // Fade-fix test: was 0.0015f. Larger offset keeps plane drawings ahead of depth map after revisit.
+    private static final float DRAW_SURFACE_OFFSET_M = 0.012f; // 12 mm
     private static final float DRAW_MAX_BAD_DEPTH_JUMP_M = 0.12f; // reject sudden raw-depth/background jumps
     private static final float DRAW_MAX_SEGMENT_DISTANCE_M = 0.07f; // create a new local anchor every ~7 cm for curved/non-plane surfaces
     private static final int DRAW_INTERP_SEGMENTS = 1;
+
+    // Final-stroke smoothing. This matches the reference video behavior:
+    // during draw = rough preview, after ACTION_UP = clean stable tube.
+    private static final int FINAL_STROKE_SMOOTHING_ITERATIONS = 2;
+    private static final float FINAL_STROKE_SIMPLIFY_TOLERANCE_M = 0.006f;
+    private static final float FINAL_STROKE_MIN_POINT_DISTANCE_M = 0.006f;
+    private static final float FINAL_STROKE_MAX_KEEP_JUMP_M = 0.22f;
+
     private static final float HIT_MAX_DISTANCE_M = 8.0f;
     private static final float HIT_MIN_DISTANCE_M = 0.10f;
 
@@ -256,7 +268,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     // Draw as a thin object/decal. Big tube radius and large surface offset look like floating geometry.
     private static final float DRAW_BASE_RADIUS_M = 0.0035f;
     private static final float DRAW_MIN_RADIUS_M = 0.0038f;
-    private static final float DRAW_MAX_RADIUS_M = 0.0090f;
+    // Fade-fix test: was 0.0090f. Slightly thicker at distance so occlusion blur eats less of the stroke.
+    private static final float DRAW_MAX_RADIUS_M = 0.018f;
 
     // Matrices
     private final float[] modelMatrix = new float[16];
@@ -275,8 +288,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         setContentView(R.layout.activity_main);
 
         surfaceView = findViewById(R.id.surfaceview);
-        depthDebugTextView = findViewById(R.id.depth_debug_text);
-        updateDepthDebugOverlay("Depth debug: draw to collect samples");
+
         displayRotationHelper = new DisplayRotationHelper(this);
 
         tapHelper = new TapHelper(this);
@@ -711,9 +723,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
             anchor.getPose().toMatrix(modelMatrix, 0);
             float distance = distanceCameraToPoseM(camera.getPose(), anchor.getPose());
 
-            float baseScale = 0.025f;
+            float baseScale = 0.035f;
             float scale = baseScale * distance;
-            scale = Math.max(0.06f, Math.min(scale, 0.10f));
+            scale = Math.max(0.08f, Math.min(scale, 0.16f));
 
             Matrix.scaleM(modelMatrix, 0, scale, scale, scale);
 //      Matrix.scaleM(modelMatrix, 0, 0.05f, 0.05f, 0.05f);
@@ -806,6 +818,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                 int action = event.getActionMasked();
 
                 if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                    if (action == MotionEvent.ACTION_UP) {
+                        finalizeCurrentStrokeAsSmoothTube();
+                    }
                     currentStroke = null;
                     lastDebugFinalDistanceM = null;
                     event.recycle();
@@ -913,11 +928,220 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         }
     }
 
+
+    /**
+     * Commit step for drawing, same idea as the reference video:
+     * live points may look rough while the user is moving, but when the finger is released
+     * we freeze all already-calculated world points, remove obvious depth spikes, smooth them,
+     * and rebuild the stroke as one stable tube mesh anchored in AR world space.
+     *
+     * Important: this method does not sample depth again. Depth/plane/feature points are used
+     * only while creating points. After ACTION_UP, final rendering uses saved world coordinates.
+     */
+    private void finalizeCurrentStrokeAsSmoothTube() {
+        if (currentStroke == null || currentStroke.finalizedSmoothTube) return;
+
+        List<float[]> frozenWorldPoints = collectStrokeWorldPoints(currentStroke);
+        if (frozenWorldPoints.size() < 2) return;
+
+        List<float[]> cleaned = cleanStrokeWorldPoints(frozenWorldPoints);
+        if (cleaned.size() < 2) return;
+
+        List<float[]> simplified = simplifyStrokeWorldPoints(cleaned, FINAL_STROKE_SIMPLIFY_TOLERANCE_M);
+        if (simplified.size() < 2) simplified = cleaned;
+
+        List<float[]> smoothed = chaikinSmoothWorldPoints(simplified, FINAL_STROKE_SMOOTHING_ITERATIONS);
+        smoothed = cleanStrokeWorldPoints(smoothed);
+        if (smoothed.size() < 2) return;
+
+        replaceStrokeWithSingleStableSegment(currentStroke, smoothed);
+        currentStroke.finalizedSmoothTube = true;
+    }
+
+    private List<float[]> collectStrokeWorldPoints(Stroke stroke) {
+        ArrayList<float[]> worldPoints = new ArrayList<>();
+        if (stroke == null) return worldPoints;
+
+        for (StrokeSegment segment : stroke.segments) {
+            if (segment == null || segment.anchor == null) continue;
+            if (segment.anchor.getTrackingState() != TrackingState.TRACKING) continue;
+
+            for (float[] localPoint : segment.localPoints) {
+                float[] world = segmentLocalToWorld(segment, localPoint);
+                if (world == null) continue;
+
+                // Avoid duplicate seam point where a new live segment started from previous point.
+                if (!worldPoints.isEmpty()) {
+                    float[] last = worldPoints.get(worldPoints.size() - 1);
+                    if (distanceBetweenPointsM(last, world) < FINAL_STROKE_MIN_POINT_DISTANCE_M * 0.5f) {
+                        continue;
+                    }
+                }
+                worldPoints.add(world);
+            }
+        }
+        return worldPoints;
+    }
+
+    private List<float[]> cleanStrokeWorldPoints(List<float[]> input) {
+        ArrayList<float[]> output = new ArrayList<>();
+        if (input == null || input.isEmpty()) return output;
+
+        float[] previousAccepted = null;
+        for (float[] p : input) {
+            if (p == null) continue;
+            if (previousAccepted == null) {
+                output.add(p.clone());
+                previousAccepted = p;
+                continue;
+            }
+
+            float d = distanceBetweenPointsM(previousAccepted, p);
+            if (d < FINAL_STROKE_MIN_POINT_DISTANCE_M) {
+                continue;
+            }
+
+            // If one raw depth sample jumped to background, do not keep it in final tube.
+            if (d > FINAL_STROKE_MAX_KEEP_JUMP_M) {
+                continue;
+            }
+
+            output.add(p.clone());
+            previousAccepted = p;
+        }
+        return output;
+    }
+
+    private List<float[]> simplifyStrokeWorldPoints(List<float[]> points, float toleranceM) {
+        ArrayList<float[]> result = new ArrayList<>();
+        if (points == null || points.isEmpty()) return result;
+        if (points.size() <= 2 || toleranceM <= 0f) {
+            for (float[] p : points) result.add(p.clone());
+            return result;
+        }
+
+        boolean[] keep = new boolean[points.size()];
+        keep[0] = true;
+        keep[points.size() - 1] = true;
+        simplifyStrokeRdp(points, 0, points.size() - 1, toleranceM, keep);
+
+        for (int i = 0; i < points.size(); i++) {
+            if (keep[i]) result.add(points.get(i).clone());
+        }
+        return result;
+    }
+
+    private void simplifyStrokeRdp(List<float[]> points, int start, int end, float toleranceM, boolean[] keep) {
+        if (end <= start + 1) return;
+
+        float maxDistance = -1f;
+        int index = -1;
+        float[] a = points.get(start);
+        float[] b = points.get(end);
+
+        for (int i = start + 1; i < end; i++) {
+            float d = distancePointToSegmentM(points.get(i), a, b);
+            if (d > maxDistance) {
+                maxDistance = d;
+                index = i;
+            }
+        }
+
+        if (index >= 0 && maxDistance > toleranceM) {
+            keep[index] = true;
+            simplifyStrokeRdp(points, start, index, toleranceM, keep);
+            simplifyStrokeRdp(points, index, end, toleranceM, keep);
+        }
+    }
+
+    private float distancePointToSegmentM(float[] p, float[] a, float[] b) {
+        float abx = b[0] - a[0];
+        float aby = b[1] - a[1];
+        float abz = b[2] - a[2];
+        float apx = p[0] - a[0];
+        float apy = p[1] - a[1];
+        float apz = p[2] - a[2];
+
+        float abLen2 = abx * abx + aby * aby + abz * abz;
+        if (abLen2 < 1e-8f) return distanceBetweenPointsM(p, a);
+
+        float t = (apx * abx + apy * aby + apz * abz) / abLen2;
+        t = Math.max(0f, Math.min(1f, t));
+
+        float cx = a[0] + abx * t;
+        float cy = a[1] + aby * t;
+        float cz = a[2] + abz * t;
+        return distanceBetweenPointsM(p, new float[]{cx, cy, cz});
+    }
+
+    private List<float[]> chaikinSmoothWorldPoints(List<float[]> input, int iterations) {
+        ArrayList<float[]> current = new ArrayList<>();
+        if (input == null) return current;
+        for (float[] p : input) current.add(p.clone());
+
+        for (int iter = 0; iter < iterations; iter++) {
+            if (current.size() < 3) break;
+
+            ArrayList<float[]> next = new ArrayList<>();
+            next.add(current.get(0).clone()); // Preserve start exactly where user started.
+
+            for (int i = 0; i < current.size() - 1; i++) {
+                float[] p0 = current.get(i);
+                float[] p1 = current.get(i + 1);
+
+                // Chaikin corner cutting: removes zigzag while keeping the path on saved world points.
+                next.add(new float[]{
+                        0.75f * p0[0] + 0.25f * p1[0],
+                        0.75f * p0[1] + 0.25f * p1[1],
+                        0.75f * p0[2] + 0.25f * p1[2]
+                });
+                next.add(new float[]{
+                        0.25f * p0[0] + 0.75f * p1[0],
+                        0.25f * p0[1] + 0.75f * p1[1],
+                        0.25f * p0[2] + 0.75f * p1[2]
+                });
+            }
+
+            next.add(current.get(current.size() - 1).clone()); // Preserve end exactly where user stopped.
+            current = next;
+        }
+        return current;
+    }
+
+    private void replaceStrokeWithSingleStableSegment(Stroke stroke, List<float[]> finalWorldPoints) {
+        if (session == null || stroke == null || finalWorldPoints == null || finalWorldPoints.size() < 2) return;
+
+        float[] anchorWorld = finalWorldPoints.get(0);
+        Anchor finalAnchor;
+        try {
+            finalAnchor = session.createAnchor(Pose.makeTranslation(anchorWorld[0], anchorWorld[1], anchorWorld[2]));
+        } catch (Exception e) {
+            Log.w(TAG, "Unable to create final smooth stroke anchor", e);
+            return;
+        }
+
+        // Detach old live preview anchors after the final stable anchor is ready.
+        for (StrokeSegment oldSegment : stroke.segments) {
+            if (oldSegment != null && oldSegment.anchor != null) {
+                oldSegment.anchor.detach();
+            }
+        }
+        stroke.segments.clear();
+
+        StrokeSegment finalSegment = new StrokeSegment();
+        finalSegment.anchor = finalAnchor;
+        for (float[] worldPoint : finalWorldPoints) {
+            finalSegment.localPoints.add(worldToSegmentLocal(finalSegment, worldPoint));
+        }
+
+        stroke.segments.add(finalSegment);
+        stroke.activeSegment = finalSegment;
+    }
+
     private void resetDepthDebugRows() {
         depthDebugRows.clear();
         depthDebugSampleIndex = 0;
         lastDebugFinalDistanceM = null;
-        updateDepthDebugOverlay("Depth debug: new stroke started");
     }
 
     private void addDepthDebugSample(Camera camera, float[] finalWorldPoint, RawDepthSample rawSample,
@@ -969,17 +1193,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         for (String r : depthDebugRows) {
             sb.append(r).append('\n');
         }
-        updateDepthDebugOverlay(sb.toString().trim());
+
     }
 
-    private void updateDepthDebugOverlay(String text) {
-        if (depthDebugTextView == null) return;
-        runOnUiThread(() -> {
-            if (depthDebugTextView != null) {
-                depthDebugTextView.setText(text);
-            }
-        });
-    }
+
 
     private float[] stabilizeDrawPoint(float[] newPoint, List<float[]> points) {
         final float DRAW_ALPHA_SLOW = 0.18f;
@@ -1496,7 +1713,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                 patch.rawConfidenceGood ? "ok" : "n/a/low");
         depthDebugRows.add(0, row);
         while (depthDebugRows.size() > DEPTH_DEBUG_MAX_ROWS) depthDebugRows.remove(depthDebugRows.size() - 1);
-        updateDepthDebugOverlay(null);
+
     }
 
     /**

@@ -66,18 +66,4 @@
       android:paddingBottom="8dp"/>
 
 
-  <TextView
-      android:id="@+id/depth_debug_text"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_alignParentBottom="true"
-      android:layout_margin="12dp"
-      android:background="#AA000000"
-      android:padding="10dp"
-      android:text="Depth debug: draw to collect samples"
-      android:textColor="#FFFFFFFF"
-      android:textSize="12sp"
-      android:fontFamily="monospace"
-      android:maxLines="10" />
-
 </RelativeLayout>

@@ -1419,7 +1419,6 @@ int id cut 0x7f09005f
 int id date_picker_actions 0x7f090060
 int id decor_content_parent 0x7f090061
 int id default_activity_button 0x7f090062
-int id depth_debug_text 0x7f090063
 int id depth_settings 0x7f090064
 int id design_bottom_sheet 0x7f090065
 int id design_menu_item_action_area 0x7f090066

@@ -1420,7 +1420,6 @@ id cut
 id date_picker_actions
 id decor_content_parent
 id default_activity_button
-id depth_debug_text
 id depth_settings
 id design_bottom_sheet
 id design_menu_item_action_area

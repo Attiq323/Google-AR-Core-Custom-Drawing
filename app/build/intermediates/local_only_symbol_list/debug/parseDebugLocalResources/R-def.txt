@@ -4,7 +4,6 @@ array depth_options_array
 array instant_placement_options_array
 drawable ic_launcher
 drawable ic_settings
-id depth_debug_text
 id depth_settings
 id instant_placement_settings
 id mode_button
