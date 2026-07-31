@@ -191,6 +191,13 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         // Live stroke can be rough while finger is moving.
         // When user releases finger, we rebuild this stroke as one stable smoothed tube.
         boolean finalizedSmoothTube = false;
+
+        // True when this stroke was drawn on a non-plane (curve / machine part) surface.
+        // Curve strokes keep multi-segment anchors so they stay attached when viewed from the side.
+        boolean onCurvedSurface = false;
+
+        // Last accepted curve normal. Reused across segments to stop side-view sliding.
+        float[] lastCurveNormal = null;
     }
 
     private final List<Stroke> drawStrokes = new ArrayList<>();
@@ -236,10 +243,11 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     }
 
     private static final float DRAW_MIN_ANCHOR_DISTANCE_M = 0.010f; // 1 cm between accepted drawing samples
-    // Fade-fix test: was 0.0015f. Larger offset keeps plane drawings ahead of depth map after revisit.
-    private static final float DRAW_SURFACE_OFFSET_M = 0.012f; // 12 mm
-    private static final float DRAW_MAX_BAD_DEPTH_JUMP_M = 0.12f; // reject sudden raw-depth/background jumps
-    private static final float DRAW_MAX_SEGMENT_DISTANCE_M = 0.07f; // create a new local anchor every ~7 cm for curved/non-plane surfaces
+    // Keep slightly above the measured surface so depth occlusion does not eat the tube,
+    // while still allowing marks to hide behind real objects in front.
+    private static final float DRAW_SURFACE_OFFSET_M = 0.010f; // 10 mm
+    private static final float DRAW_MAX_BAD_DEPTH_JUMP_M = 0.10f; // reject sudden raw-depth/background jumps
+    private static final float DRAW_MAX_SEGMENT_DISTANCE_M = 0.06f; // new local anchor every ~6 cm on curves
     private static final int DRAW_INTERP_SEGMENTS = 1;
 
     // Final-stroke smoothing. This matches the reference video behavior:
@@ -247,7 +255,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     private static final int FINAL_STROKE_SMOOTHING_ITERATIONS = 2;
     private static final float FINAL_STROKE_SIMPLIFY_TOLERANCE_M = 0.006f;
     private static final float FINAL_STROKE_MIN_POINT_DISTANCE_M = 0.006f;
-    private static final float FINAL_STROKE_MAX_KEEP_JUMP_M = 0.22f;
+    private static final float FINAL_STROKE_MAX_KEEP_JUMP_M = 0.18f;
 
     private static final float HIT_MAX_DISTANCE_M = 8.0f;
     private static final float HIT_MIN_DISTANCE_M = 0.10f;
@@ -256,19 +264,22 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     // use raw depth + confidence, ignore invalid/low-confidence pixels, and use a local patch.
     private static final int RAW_DEPTH_PATCH_RADIUS_PX = 3; // 7x7 patch
     private static final int RAW_DEPTH_MIN_VALID_SAMPLES = 5;
-    private static final float RAW_DEPTH_MIN_CONFIDENCE = 0.35f;
+    private static final float RAW_DEPTH_MIN_CONFIDENCE = 0.40f;
+    // Reject object/background mixed patches (common on engines, holes, edges).
+    private static final float RAW_DEPTH_MAX_MIXED_RANGE_M = 0.055f;
 
     // Backend-only custom surface patches for non-plane/curved surfaces.
     // These are small hidden local planes estimated once from the dense/full depth image.
     private static final int MINI_PATCH_RADIUS_PX = 4;
     private static final int MINI_PATCH_MIN_VALID_SAMPLES = 8;
-    private static final float MINI_PATCH_MAX_DEPTH_RANGE_M = 0.18f;
-    private static final float MINI_PATCH_MAX_CENTER_TO_MEDIAN_M = 0.08f;
+    private static final float MINI_PATCH_MAX_DEPTH_RANGE_M = 0.14f;
+    private static final float MINI_PATCH_MAX_CENTER_TO_MEDIAN_M = 0.06f;
+    // If new curve normal is too different from previous, keep previous to stop side-view sliding.
+    private static final float CURVE_NORMAL_MIN_DOT = 0.70f;
 
     // Draw as a thin object/decal. Big tube radius and large surface offset look like floating geometry.
-    private static final float DRAW_BASE_RADIUS_M = 0.0035f;
-    private static final float DRAW_MIN_RADIUS_M = 0.0038f;
-    // Fade-fix test: was 0.0090f. Slightly thicker at distance so occlusion blur eats less of the stroke.
+    private static final float DRAW_BASE_RADIUS_M = 0.0040f;
+    private static final float DRAW_MIN_RADIUS_M = 0.0040f;
     private static final float DRAW_MAX_RADIUS_M = 0.018f;
 
     // Matrices
@@ -776,19 +787,50 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                 anchor = createSurfaceAnchor(planeHit, camera);
                 trackable = planeHit.getTrackable();
             } else {
-                MiniSurfacePatch patch = tryBuildMiniSurfacePatch(frame, camera, tap.getX(), tap.getY(), null, null);
-                if (patch != null) {
-                    anchor = createMiniPatchAnchor(patch);
-                    trackable = null; // Custom backend patch, not an ARCore Trackable.
-                    addMiniPatchDebugSample(camera, patch, "arrow");
+                Image rawDepthImage = null;
+                Image rawDepthConfidenceImage = null;
+                try {
+                    rawDepthImage = frame.acquireRawDepthImage16Bits();
+                    rawDepthConfidenceImage = frame.acquireRawDepthConfidenceImage();
+                } catch (NotYetAvailableException ignored) {
+                    // Mini patch can still use full depth.
                 }
 
-                if (anchor == null) {
-                    HitResult fallbackHit = pickSurfaceHitDepthFirst(frame, camera, tap.getX(), tap.getY());
-                    if (fallbackHit != null) {
-                        anchor = createSurfaceAnchor(fallbackHit, camera);
-                        trackable = fallbackHit.getTrackable();
+                try {
+                    MiniSurfacePatch patch = tryBuildMiniSurfacePatch(
+                            frame, camera, tap.getX(), tap.getY(), rawDepthImage, rawDepthConfidenceImage);
+                    if (patch != null) {
+                        // Prefer clean raw depth position for arrows on machine parts.
+                        float[] rawWorld = null;
+                        if (rawDepthImage != null && rawDepthConfidenceImage != null) {
+                            rawWorld = getStableRawDepthWorldPoint(
+                                    frame, camera, rawDepthImage, rawDepthConfidenceImage, tap.getX(), tap.getY());
+                        }
+                        if (isCleanRawDepthSample(lastRawDepthSample) && rawWorld != null && patch.normalWorld != null) {
+                            float[] offsetCenter = new float[]{
+                                    rawWorld[0] + patch.normalWorld[0] * DRAW_SURFACE_OFFSET_M,
+                                    rawWorld[1] + patch.normalWorld[1] * DRAW_SURFACE_OFFSET_M,
+                                    rawWorld[2] + patch.normalWorld[2] * DRAW_SURFACE_OFFSET_M
+                            };
+                            patch.centerWorld = offsetCenter;
+                            patch.pose = makePoseFromPositionAndNormal(offsetCenter, patch.normalWorld, camera);
+                            patch.rawConfidenceGood = true;
+                        }
+                        anchor = createMiniPatchAnchor(patch);
+                        trackable = null; // Custom backend patch, not an ARCore Trackable.
+                        addMiniPatchDebugSample(camera, patch, "arrow");
                     }
+
+                    if (anchor == null) {
+                        HitResult fallbackHit = pickSurfaceHitDepthFirst(frame, camera, tap.getX(), tap.getY());
+                        if (fallbackHit != null && isLikelyStableDepthHit(fallbackHit, camera)) {
+                            anchor = createSurfaceAnchor(fallbackHit, camera);
+                            trackable = fallbackHit.getTrackable();
+                        }
+                    }
+                } finally {
+                    if (rawDepthImage != null) rawDepthImage.close();
+                    if (rawDepthConfidenceImage != null) rawDepthConfidenceImage.close();
                 }
             }
 
@@ -819,7 +861,12 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
                 if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                     if (action == MotionEvent.ACTION_UP) {
-                        finalizeCurrentStrokeAsSmoothTube();
+                        if (currentStroke != null && currentStroke.onCurvedSurface) {
+                            // Keep multi-segment anchors on curves so the tube stays on the part.
+                            finalizeCurveStrokeInPlace();
+                        } else {
+                            finalizeCurrentStrokeAsSmoothTube();
+                        }
                     }
                     currentStroke = null;
                     lastDebugFinalDistanceM = null;
@@ -827,10 +874,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                     continue;
                 }
 
-                // Raw depth + confidence are sampled for analysis/quality only. They do not move
-                // already-created stroke points.
+                float[] rawWorldPoint = null;
                 if (rawDepthImage != null && rawDepthConfidenceImage != null) {
-                    getStableRawDepthWorldPoint(
+                    rawWorldPoint = getStableRawDepthWorldPoint(
                             frame,
                             camera,
                             rawDepthImage,
@@ -852,6 +898,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                     surfaceHit = planeHit;
                     stablePose = offsetAlongSurfaceNormal(surfaceHit, camera, DRAW_SURFACE_OFFSET_M);
                 } else {
+                    // Curve / machine part: clean raw depth for position, mini-patch for normal.
+                    // Reject mixed depth (holes/edges) so the mark does not jump to background.
                     miniPatch = tryBuildMiniSurfacePatch(
                             frame,
                             camera,
@@ -859,11 +907,58 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                             event.getY(),
                             rawDepthImage,
                             rawDepthConfidenceImage);
+
+                    boolean rawClean = isCleanRawDepthSample(lastRawDepthSample) && rawWorldPoint != null;
                     if (miniPatch != null) {
+                        float[] estimatedNormal = miniPatch.normalWorld.clone();
+                        // tryBuildMiniSurfacePatch stores an already-offset center; recover surface point first.
+                        float[] surfaceCenter = new float[]{
+                                miniPatch.centerWorld[0] - estimatedNormal[0] * DRAW_SURFACE_OFFSET_M,
+                                miniPatch.centerWorld[1] - estimatedNormal[1] * DRAW_SURFACE_OFFSET_M,
+                                miniPatch.centerWorld[2] - estimatedNormal[2] * DRAW_SURFACE_OFFSET_M
+                        };
+                        if (rawClean) {
+                            surfaceCenter = rawWorldPoint;
+                        }
+
+                        float[] normal = estimatedNormal;
+                        if (currentStroke != null && currentStroke.lastCurveNormal != null) {
+                            normal = stabilizeCurveNormal(currentStroke.lastCurveNormal, estimatedNormal);
+                        }
+
+                        float[] offsetCenter = new float[]{
+                                surfaceCenter[0] + normal[0] * DRAW_SURFACE_OFFSET_M,
+                                surfaceCenter[1] + normal[1] * DRAW_SURFACE_OFFSET_M,
+                                surfaceCenter[2] + normal[2] * DRAW_SURFACE_OFFSET_M
+                        };
+                        miniPatch.normalWorld = normal;
+                        miniPatch.centerWorld = offsetCenter;
+                        miniPatch.pose = makePoseFromPositionAndNormal(offsetCenter, normal, camera);
+                        miniPatch.rawConfidenceGood = rawClean;
+                        stablePose = miniPatch.pose;
+                    } else if (rawClean) {
+                        float[] normal = estimateCameraFacingNormal(rawWorldPoint, camera);
+                        if (currentStroke != null && currentStroke.lastCurveNormal != null) {
+                            normal = stabilizeCurveNormal(currentStroke.lastCurveNormal, normal);
+                        }
+                        float[] offsetCenter = new float[]{
+                                rawWorldPoint[0] + normal[0] * DRAW_SURFACE_OFFSET_M,
+                                rawWorldPoint[1] + normal[1] * DRAW_SURFACE_OFFSET_M,
+                                rawWorldPoint[2] + normal[2] * DRAW_SURFACE_OFFSET_M
+                        };
+                        miniPatch = new MiniSurfacePatch();
+                        miniPatch.centerWorld = offsetCenter;
+                        miniPatch.normalWorld = normal;
+                        miniPatch.validDepthCount = lastRawDepthSample.validCount;
+                        miniPatch.minDepthMeters = lastRawDepthSample.minDepthMeters;
+                        miniPatch.maxDepthMeters = lastRawDepthSample.maxDepthMeters;
+                        miniPatch.rawConfidenceGood = true;
+                        miniPatch.pose = makePoseFromPositionAndNormal(offsetCenter, normal, camera);
                         stablePose = miniPatch.pose;
                     } else {
+                        // Mixed/noisy depth: only accept a depth hit if it looks stable.
                         surfaceHit = pickSurfaceHitDepthFirst(frame, camera, event.getX(), event.getY());
-                        if (surfaceHit != null) {
+                        if (surfaceHit != null && isLikelyStableDepthHit(surfaceHit, camera)) {
                             stablePose = offsetAlongSurfaceNormal(surfaceHit, camera, DRAW_SURFACE_OFFSET_M);
                         }
                     }
@@ -880,16 +975,25 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                     resetDepthDebugRows();
                     currentStroke = new Stroke();
                     currentStroke.owner = currentUserRole;
+                    currentStroke.onCurvedSurface = !usingRealPlane;
                     drawStrokes.add(currentStroke);
                     currentStroke.activeSegment = createStrokeSegmentFromSurface(surfaceHit, miniPatch, camera);
                     if (currentStroke.activeSegment != null) {
                         currentStroke.segments.add(currentStroke.activeSegment);
+                    }
+                    if (miniPatch != null && miniPatch.normalWorld != null) {
+                        currentStroke.lastCurveNormal = miniPatch.normalWorld.clone();
                     }
                 }
 
                 if (currentStroke == null || currentStroke.activeSegment == null) {
                     event.recycle();
                     continue;
+                }
+
+                if (!usingRealPlane && miniPatch != null && miniPatch.normalWorld != null) {
+                    currentStroke.onCurvedSurface = true;
+                    currentStroke.lastCurveNormal = miniPatch.normalWorld.clone();
                 }
 
                 StrokeSegment segment = currentStroke.activeSegment;
@@ -956,6 +1060,91 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
         replaceStrokeWithSingleStableSegment(currentStroke, smoothed);
         currentStroke.finalizedSmoothTube = true;
+    }
+
+    /**
+     * Curve/machine-part strokes keep their local anchors (mini patches).
+     * We only smooth points inside each segment so the tube stays glued to the part
+     * when the user walks around and views from the side.
+     */
+    private void finalizeCurveStrokeInPlace() {
+        if (currentStroke == null || currentStroke.finalizedSmoothTube) return;
+
+        for (StrokeSegment segment : currentStroke.segments) {
+            if (segment == null || segment.anchor == null) continue;
+            if (segment.anchor.getTrackingState() != TrackingState.TRACKING) continue;
+            if (segment.localPoints.size() < 2) continue;
+
+            ArrayList<float[]> worldPoints = new ArrayList<>();
+            for (float[] localPoint : segment.localPoints) {
+                float[] world = segmentLocalToWorld(segment, localPoint);
+                if (world != null) worldPoints.add(world);
+            }
+            if (worldPoints.size() < 2) continue;
+
+            List<float[]> cleaned = cleanStrokeWorldPoints(worldPoints);
+            if (cleaned.size() < 2) continue;
+
+            List<float[]> simplified = simplifyStrokeWorldPoints(cleaned, FINAL_STROKE_SIMPLIFY_TOLERANCE_M);
+            if (simplified.size() < 2) simplified = cleaned;
+
+            List<float[]> smoothed = chaikinSmoothWorldPoints(simplified, FINAL_STROKE_SMOOTHING_ITERATIONS);
+            smoothed = cleanStrokeWorldPoints(smoothed);
+            if (smoothed.size() < 2) continue;
+
+            segment.localPoints.clear();
+            for (float[] worldPoint : smoothed) {
+                segment.localPoints.add(worldToSegmentLocal(segment, worldPoint));
+            }
+        }
+
+        currentStroke.finalizedSmoothTube = true;
+    }
+
+    private boolean isCleanRawDepthSample(RawDepthSample sample) {
+        return sample != null
+                && sample.validCount >= RAW_DEPTH_MIN_VALID_SAMPLES
+                && sample.avgConfidence >= RAW_DEPTH_MIN_CONFIDENCE
+                && sample.depthRangeMeters() <= RAW_DEPTH_MAX_MIXED_RANGE_M;
+    }
+
+    private float[] stabilizeCurveNormal(float[] previousNormal, float[] newNormal) {
+        if (previousNormal == null || newNormal == null) {
+            return newNormal == null ? previousNormal : newNormal.clone();
+        }
+        float dot = previousNormal[0] * newNormal[0]
+                + previousNormal[1] * newNormal[1]
+                + previousNormal[2] * newNormal[2];
+        if (dot < CURVE_NORMAL_MIN_DOT) {
+            // Too different (edge/hole flip) — keep previous for side-view stability.
+            return previousNormal.clone();
+        }
+        // Soft blend when normals are similar.
+        float[] blended = new float[]{
+                previousNormal[0] * 0.65f + newNormal[0] * 0.35f,
+                previousNormal[1] * 0.65f + newNormal[1] * 0.35f,
+                previousNormal[2] * 0.65f + newNormal[2] * 0.35f
+        };
+        normalize3(blended);
+        return blended;
+    }
+
+    private float[] estimateCameraFacingNormal(float[] worldPoint, Camera camera) {
+        float[] camT = new float[3];
+        camera.getPose().getTranslation(camT, 0);
+        float[] normal = new float[]{
+                camT[0] - worldPoint[0],
+                camT[1] - worldPoint[1],
+                camT[2] - worldPoint[2]
+        };
+        normalize3(normal);
+        return normal;
+    }
+
+    private boolean isLikelyStableDepthHit(HitResult hit, Camera camera) {
+        if (hit == null || camera == null) return false;
+        float dist = distanceCameraToPoseM(camera.getPose(), hit.getHitPose());
+        return dist >= HIT_MIN_DISTANCE_M && dist <= HIT_MAX_DISTANCE_M;
     }
 
     private List<float[]> collectStrokeWorldPoints(Stroke stroke) {
@@ -1459,6 +1648,17 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
             if (normal == null) return null;
             orientNormalTowardCamera(normal, centerWorld, camera);
 
+            boolean rawConfidenceGood = false;
+            if (optionalRawDepthImage != null && optionalRawDepthConfidenceImage != null) {
+                float[] rawWorld = getStableRawDepthWorldPoint(
+                        frame, camera, optionalRawDepthImage, optionalRawDepthConfidenceImage, screenX, screenY);
+                rawConfidenceGood = isCleanRawDepthSample(lastRawDepthSample);
+                // Prefer geometrically accurate raw depth center when the patch is clean.
+                if (rawConfidenceGood && rawWorld != null) {
+                    centerWorld = rawWorld;
+                }
+            }
+
             float[] offsetCenter = new float[]{
                     centerWorld[0] + normal[0] * DRAW_SURFACE_OFFSET_M,
                     centerWorld[1] + normal[1] * DRAW_SURFACE_OFFSET_M,
@@ -1471,13 +1671,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
             patch.validDepthCount = points.size();
             patch.minDepthMeters = minDepth;
             patch.maxDepthMeters = maxDepth;
-
-            if (optionalRawDepthImage != null && optionalRawDepthConfidenceImage != null) {
-                getStableRawDepthWorldPoint(frame, camera, optionalRawDepthImage, optionalRawDepthConfidenceImage, screenX, screenY);
-                patch.rawConfidenceGood = lastRawDepthSample != null
-                        && lastRawDepthSample.avgConfidence >= RAW_DEPTH_MIN_CONFIDENCE;
-            }
-
+            patch.rawConfidenceGood = rawConfidenceGood;
             patch.pose = makePoseFromPositionAndNormal(offsetCenter, normal, camera);
             return patch;
         } finally {

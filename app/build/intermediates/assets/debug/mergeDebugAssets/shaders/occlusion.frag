@@ -77,7 +77,9 @@ float Depth_GetOcclusion(const sampler2D depthTexture, const vec2 depthUv,
   // Instead of a hard z-buffer test, allow the asset to fade into the
   // background along a 2 * kDepthTolerancePerMm * assetDepthMm
   // range centered on the background depth.
-  const float kDepthTolerancePerMm = 0.01;
+  // Slightly wider tolerance keeps surface marks visible on host parts while
+  // still hiding them behind nearer real objects.
+  const float kDepthTolerancePerMm = 0.015;
   return clamp(1.0 -
                    0.5 * (depthMm - assetDepthMm) /
                        (kDepthTolerancePerMm * assetDepthMm) +
