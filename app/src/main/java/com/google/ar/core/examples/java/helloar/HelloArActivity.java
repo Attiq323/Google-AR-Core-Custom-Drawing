@@ -1544,7 +1544,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
             if (bestDepthHit == null && t instanceof DepthPoint) {
                 bestDepthHit = h;
-
             }
 
             if (bestPointHit == null && t instanceof Point) {
