@@ -1,0 +1,4 @@
+#Wed Aug 05 15:22:07 PKT 2026
+base.0=D\:\\WorkSpace\\ar_mini_surface_patch_updated\\app\\build\\intermediates\\dex\\debugAndroidTest\\mergeProjectDexDebugAndroidTest\\0\\classes.dex
+path.0=0/classes.dex
+renamed.0=classes.dex

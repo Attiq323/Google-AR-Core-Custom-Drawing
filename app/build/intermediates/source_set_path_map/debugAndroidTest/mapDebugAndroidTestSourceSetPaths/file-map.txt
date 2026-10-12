@@ -1,0 +1,4 @@
+com.google.ar.core.examples.java.helloar.test.app-androidTest-0 D:\WorkSpace\ar_mini_surface_patch_updated\app\build\generated\res\resValues\androidTest\debug
+com.google.ar.core.examples.java.helloar.test.app-mergeDebugAndroidTestResources-1 D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.google.ar.core.examples.java.helloar.test.app-mergeDebugAndroidTestResources-2 D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.google.ar.core.examples.java.helloar.test.app-debugAndroidTest-3 D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources

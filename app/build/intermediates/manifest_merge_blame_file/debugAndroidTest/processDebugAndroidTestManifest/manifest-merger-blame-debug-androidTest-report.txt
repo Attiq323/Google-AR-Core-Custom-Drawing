@@ -1,0 +1,34 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.google.ar.core.examples.java.helloar.test" >
+4
+5    <uses-sdk
+5-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:5:5-74
+6        android:minSdkVersion="24"
+6-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:5:15-41
+7        android:targetSdkVersion="36" />
+7-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:5:42-71
+8
+9    <instrumentation
+9-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:11:5-15:90
+10        android:name="android.test.InstrumentationTestRunner"
+10-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:11:22-75
+11        android:functionalTest="false"
+11-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:14:22-52
+12        android:handleProfiling="false"
+12-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:13:22-53
+13        android:label="Tests for com.google.ar.core.examples.java.helloar"
+13-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:15:22-88
+14        android:targetPackage="com.google.ar.core.examples.java.helloar" />
+14-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:12:22-86
+15
+16    <application
+16-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:7:5-9:19
+17        android:debuggable="true"
+18        android:extractNativeLibs="false" >
+19        <uses-library android:name="android.test.runner" />
+19-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:8:9-60
+19-->D:\WorkSpace\ar_mini_surface_patch_updated\app\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest13811335304240584918.xml:8:23-57
+20    </application>
+21
+22</manifest>
